@@ -415,8 +415,12 @@ typedef uint64_t GpsLocationExtendedFlags;
 #define GPS_LOCATION_EXTENDED_HAS_LLA_VRP_BASED                0x200000000000
 /** GpsLocationExtended has the velocityVRPased. */
 #define GPS_LOCATION_EXTENDED_HAS_ENU_VELOCITY_LLA_VRP_BASED   0x400000000000
+/** GpsLocationExtended has upperTriangleFullCovMatrix. */
 #define GPS_LOCATION_EXTENDED_HAS_UPPER_TRIANGLE_FULL_COV_MATRIX 0x800000000000
+/** GpsLocationExtended has drSolutionStatusMask. */
 #define GPS_LOCATION_EXTENDED_HAS_DR_SOLUTION_STATUS_MASK        0x1000000000000
+/** GpsLocationExtended has altitudeAssumed. */
+#define GPS_LOCATION_EXTENDED_HAS_ALTITUDE_ASSUMED               0x2000000000000
 
 typedef uint32_t LocNavSolutionMask;
 /* Bitmask to specify whether SBAS ionospheric correction is used  */
@@ -867,13 +871,13 @@ typedef struct {
     */
     float upperTriangleFullCovMatrix[COV_MATRIX_SIZE];
     DrSolutionStatusMask drSolutionStatusMask;
+    /** When this field is valid, it will indicates whether altitude
+     *  is assumed or calculated.
+     *  false: Altitude is calculated.
+     *  true:  Altitude is assumed; there may not be enough
+     *         satellites to determine the precise altitude. */
+    bool altitudeAssumed;
 } GpsLocationExtended;
-
-enum loc_sess_status {
-    LOC_SESS_SUCCESS,
-    LOC_SESS_INTERMEDIATE,
-    LOC_SESS_FAILURE
-};
 
 // struct that contains complete position info from engine
 typedef struct {
@@ -915,6 +919,7 @@ typedef uint32_t NmeaSentenceTypesMask;
 #define LOC_NMEA_MASK_GQGSV_V02 ((NmeaSentenceTypesMask)0x10000000) /**<  Enable GQGSV type  */
 #define LOC_NMEA_MASK_GIGSV_V02 ((NmeaSentenceTypesMask)0x20000000) /**<  Enable GIGSV type  */
 #define LOC_NMEA_MASK_GNDTM_V02 ((NmeaSentenceTypesMask)0x40000000) /**<  Enable GNDTM type  */
+#define LOC_NMEA_MASK_TAGBLOCK_V02 ((NmeaSentenceTypesMask)0x80000000) /**< Enable TAGBLOCK type */
 
 
 // all bitmasks of general supported NMEA sentenses - debug is not part of this
@@ -1009,6 +1014,7 @@ enum loc_api_adapter_event_index {
     LOC_API_ADAPTER_LOC_SYSTEM_INFO,                   // Location system info event
     LOC_API_ADAPTER_GNSS_NHZ_MEASUREMENT_REPORT,       // GNSS SV nHz measurement report
     LOC_API_ADAPTER_EVENT_REPORT_INFO,                 // Event report info
+    LOC_API_ADAPTER_LATENCY_INFORMATION_REPORT,       // Latency information report
     LOC_API_ADAPTER_EVENT_MAX
 };
 
@@ -1051,6 +1057,7 @@ enum loc_api_adapter_event_index {
 #define LOC_API_ADAPTER_BIT_LOC_SYSTEM_INFO                  (1ULL<<LOC_API_ADAPTER_LOC_SYSTEM_INFO)
 #define LOC_API_ADAPTER_BIT_GNSS_NHZ_MEASUREMENT             (1ULL<<LOC_API_ADAPTER_GNSS_NHZ_MEASUREMENT_REPORT)
 #define LOC_API_ADAPTER_BIT_EVENT_REPORT_INFO                (1ULL<<LOC_API_ADAPTER_EVENT_REPORT_INFO)
+#define LOC_API_ADAPTER_BIT_LATENCY_INFORMATION              (1ULL<<LOC_API_ADAPTER_LATENCY_INFORMATION_REPORT)
 
 typedef uint64_t LOC_API_ADAPTER_EVENT_MASK_T;
 
@@ -1542,6 +1549,10 @@ typedef uint64_t GpsSvMeasHeaderFlags;
 #define GNSS_SV_MEAS_HEADER_HAS_DGNSS_CORRECTION_SOURCE_ID    0x020000000
 #define GNSS_SV_MEAS_HEADER_HAS_DGNSS_REF_STATION_ID          0x040000000
 #define GNSS_SV_MEAS_HEADER_HAS_REF_COUNT_TICKS               0x080000000
+#define GNSS_SV_MEAS_HEADER_HAS_GPSL1L2C_TIME_BIAS            0x100000000
+#define GNSS_SV_MEAS_HEADER_HAS_GLOG1G2_TIME_BIAS             0x200000000
+#define GNSS_SV_MEAS_HEADER_HAS_BDSB1IB1C_TIME_BIAS           0x400000000
+#define GNSS_SV_MEAS_HEADER_HAS_GALE1E5B_TIME_BIAS            0x800000000
 
 typedef struct
 {
@@ -1568,6 +1579,10 @@ typedef struct
     Gnss_InterSystemBiasStructType              gpsL1L5TimeBias;
     Gnss_InterSystemBiasStructType              galE1E5aTimeBias;
     Gnss_InterSystemBiasStructType              bdsB1iB2aTimeBias;
+    Gnss_InterSystemBiasStructType              gpsL1L2cTimeBias;
+    Gnss_InterSystemBiasStructType              gloG1G2TimeBias;
+    Gnss_InterSystemBiasStructType              bdsB1iB1cTimeBias;
+    Gnss_InterSystemBiasStructType              galE1E5bTimeBias;
 
     GnssSystemTimeStructType                    gpsSystemTime;
     GnssSystemTimeStructType                    galSystemTime;
